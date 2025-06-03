@@ -20,6 +20,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { maxLength, minLength } from "zod/v4"
 import { createAccount } from "@/lib/actions/user.actions"
+import OTPModal from "@/components/OPTModal"
 
 const formSchema = z.object({
   username: z.string().min(2).max(50),
@@ -127,7 +128,8 @@ const AuthForm = ({ type }: { type: FormType }) => {
         </form>
       </Form>
       {/* TODO: Adding OPT Verification  */}
-      {/* OPT Verification  */}
+      {/* {accountId && <OPTModal email={form.getValues('email')} accountId={accountId}/>} */}
+      {true && <OTPModal email={form.getValues('email')} accountId={accountId}/>}
     </>
   )
 }
