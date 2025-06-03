@@ -1,3 +1,5 @@
+'use client'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,53 +17,77 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
-const OPTModal = () => {
-
+import Image from "next/image"
+import { useState } from "react"
+import { Button } from "./ui/button"
+import { verifySecret, sendEmailOTP } from "@/lib/actions/user.actions"
+import { useRouter } from "next/navigation"
+const OPTModal = ({ accountId, email }: { accountId: string; email: string; }) => {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(true)
-  const [password, setPassword] = useState('')
+  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-const handleSubmit = async(e:React.MouseEvent<HTMLButtonElement>) =>{
-e.preventDefault();
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     setIsLoading(true)
 
-    try{
+    try {
+      //Call API to verify OTP
+      const sessionId = await verifySecret({ accountId, password });
 
-    }catch(error){
-console.log("Failed to verify OTP", error)
+      if (sessionId) {
+        router.push('/')
+      }
+    } catch (error) {
+      console.log("Failed to verify OTP", error)
     }
+    setIsLoading(false)
+  }
+
+  const handleResendOTP = async () => {
+    //Call API to resend OTP
+    await sendEmailOTP({ email })
   }
 
   return (
-   <AlertDialog>
-  <AlertDialogTrigger>Open</AlertDialogTrigger>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-      <AlertDialogDescription>
-        This action cannot be undone. This will permanently delete your account
-        and remove your data from our servers.
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-        <InputOTP maxLength={6}>
-  <InputOTPGroup>
-    <InputOTPSlot index={0} />
-    <InputOTPSlot index={1} />
-    <InputOTPSlot index={2} />
-  </InputOTPGroup>
-  <InputOTPSeparator />
-  <InputOTPGroup>
-    <InputOTPSlot index={3} />
-    <InputOTPSlot index={4} />
-    <InputOTPSlot index={5} />
-  </InputOTPGroup>
-</InputOTP>
-    <AlertDialogFooter>
-      <AlertDialogCancel>Cancel</AlertDialogCancel>
-      <AlertDialogAction>Continue</AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <AlertDialogContent className="shad-alert-dialog">
+        <AlertDialogHeader className="relative flex justify-center">
+          <AlertDialogTitle className="h2 text-center ">Enter your OTP<Image src={"/assets/icons/close-dark.svg"} alt={"Close"} height={20} width={20} className={'otp-close-button'} onClick={() => setIsOpen(false)} /></AlertDialogTitle>
+          <AlertDialogDescription className="subtitle-2 text-center text-light-100">
+            We&apos;ve send you a code to <span className="pl-1 text-brand">{email}</span>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <InputOTP maxLength={6} value={password} onChange={setPassword}>
+          <InputOTPGroup className="shad-otp">
+            <InputOTPSlot index={0} className={"shad-otp-slot"} />
+            <InputOTPSlot index={1} className={"shad-otp-slot"} />
+            <InputOTPSlot index={2} className={"shad-otp-slot"} />
+            <InputOTPSlot index={3} className={"shad-otp-slot"} />
+            <InputOTPSlot index={4} className={"shad-otp-slot"} />
+            <InputOTPSlot index={5} className={"shad-otp-slot"} />
+          </InputOTPGroup>
+        </InputOTP>
+        <AlertDialogFooter>
+          <div className="flex w-full flex-col gap-4">
+
+            <AlertDialogAction onClick={handleSubmit} className="shad-submit-btn h-12" type="button">
+              Submit
+              {isLoading &&
+                <Image src={"/assets/icons/loader.svg"} alt="loader" height={24} width={24} className="ml-2 animate-spin" />
+              }
+            </AlertDialogAction>
+            <div className="subtitle-2 mt-2 text-center text-light-100">Didn&apos;t received a code ?
+              <Button type="button" variant="link" className={'pl-1 text-brand'} onClick={handleResendOTP}>
+                Click to resend
+              </Button>
+            </div>
+          </div>
+
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 
